@@ -93,25 +93,45 @@ def generate_one_api(small_block,filename):
     #dic["apiname"] = None
     #dic["method"] = None
     #dic["header"]
-    dic = find(small_block,dic)
+    find(small_block,dic)
+    dic["give"] = None
+    dic["ret"] = None
 
     method = dic["method"]
     apiname = dic["apiname"]
     header = dic["header"]
     urlargs = dic["urlargs"]
-    print(method)
-    print(apiname)
-    print(header)
-    print(urlargs)
+    givecontent = dic["give"]
+    retcontent = dic["ret"]
+
+    filename = "apis/" + filename
+    file = open(filename,"w+")
+    file.writelines(static_content)
+
+    #@api.route content and methods
+    headcontent = [
+        "@api.route('/" + apiname + "/') " +",methods="
+    ]
+    file.writelines(headcontent)
+
     if method == None:
-        raise("Can't find leagle Content")
+        print("Can't find leagle Content")
     elif 'GET' in method:
-        pass
-    elif 'POST' in method or 'PUT' in method:
-        pass
+        methodcontent = ["['GET'])\n"]
+    elif 'POST' in method :
+        methodcontent = ["['POST'])\n"]
+    elif 'PUT' in method:
+        methodcontent = ["['PUT'])\n"]
     else:
-        pass
-    pass
+        methodcontent = [ "['UNKONW'])\n" ]
+    file.writelines(methodcontent)
+
+    funccontent = [
+        "def "+filename+"():\n"
+    ]
+    file.writelines(funccontent)
+
+
 
 def find(small_block,dic):
     """
@@ -122,9 +142,11 @@ def find(small_block,dic):
     | :--- | :-- | :-- |
     |/api/v1.0/url/ |adminHeader| POST|
     """
+    
     for i in range(len(small_block)):
         #if '/' in small_block[i], it is the info line.
         if '/' in small_block[i]:
+            #print("Yoooooo2")
             symbolcounter = []          #count '|'
             #print(range(len(small_block[i])))
             for w in range(len(small_block[i])):
@@ -154,7 +176,38 @@ def find(small_block,dic):
             dic["apiname"] = (temp[symbolcounter2[-2] : symbolcounter2[-1]]).strip('/')
             dic["urlargs"] = get_urlargs(temp,dic)
 
-            return dic
+        elif 'DATA' in small_block[i]:
+            line1 = i
+            for x in range(len(small_block[i:])-1):
+                #print(small_block[x])
+                if '}' in small_block[x]:
+                    line2 = x
+                    datablock = small_block[line1:line2]
+                
+                    if 'POST' in small_block[i] or 'PUT' in small_block[i]:
+                        giveout = {}
+                        for p in range(len(datablock)-1):
+                            if ':' in datablock[p]:
+                                flagindex = datablock[p].find(':')
+                                keyindex = datablock[p].find('"')
+                                key = datablock[p][keyindex:flagindex-1]
+                                key = key.strip('"').strip("'").strip("\n")
+                                value = datablock[p][flagindex+1:].strip(',').strip('"').strip("'").strip("\n").rstrip(',')
+                                giveout[key] = value
+                                dic["give"] = giveout
+                                print("Give:",giveout)
+
+                    elif 'RESPONSE' in small_block[i]:
+                        retback = {}
+                        for p in range(len(datablock)-1):
+                            if ':' in datablock[p]:
+                                flagindex = datablock[p].find(':')
+                                keyindex = datablock[p].find('"')
+                                key = datablock[p][keyindex:flagindex-1].strip('"').strip("'").strip("\n")
+                                value = datablock[p][flagindex+1:].strip(',').strip('"').strip("'").strip("\n")
+                                retback[key] = value
+                                dic["ret"] = retback
+                                print("ret",retback)
 
 
 def get_urlargs(temp,dic):
