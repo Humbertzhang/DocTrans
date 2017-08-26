@@ -1,6 +1,6 @@
 import os
 from api_part import _init_ , static_content
-
+from pprint import pprint
 def makedir():
     """
     generate dirs to place apis and tests
@@ -19,7 +19,7 @@ def makedir():
     if os.path.isfile("test/test.py"):
         pass
     else:
-        with open("test/test.py","w+") as f:
+        with open("test/test.py","w") as f:
             f.close()
 
 
@@ -49,7 +49,7 @@ def generate(mdfile):
             if os.path.isfile("apis/"+filename+".py"):
                 pass
             else:
-                with open("apis/"+filename+".py","w+") as f:
+                with open("apis/"+filename+".py","w") as f:
                     f.close()
             rememberlines.append(i)
             docnames.append(filename+".py")
@@ -62,7 +62,7 @@ def generate(mdfile):
             block = mdlines[numa:numb]
         else:
             block = mdlines[rememberlines[number]:]
-        print("generating: " + docnames[number] + "......")
+        print("generating:----------------- " + docnames[number] + "    --------------------------")
         generate_apis(block,docnames[number])
         generate_tests(block)
 
@@ -72,30 +72,34 @@ def generate_apis(block,filename): #generate list of file
     use generate_init() function generate __init__.py file.
     Every Block is A file's content.It may contain many apis.
     """
+    with open('apis/'+ filename,"w+") as f:
+        f.writelines(static_content)
+        f.close()
+
     apilines = []
     for i in range(len(block)):
         if block[i].count("#") == 4:
             apilines.append(i)
     
     for number in range(len(apilines)):
-        if number != len(apilines) - 1:
+        if number != len(apilines)-1:
             small_block = block[ apilines[number]:apilines[number+1]]
         else:
             small_block = block[ apilines[number]:]
         #print(small_block)
         generate_one_api(small_block,filename)
+        #print("Small Blocks:")
+        #pprint(small_block)
 
 def generate_one_api(small_block,filename):
     """
     Use the content of the api to create api's static content.
     """
     dic = {}
-    #dic["apiname"] = None
-    #dic["method"] = None
-    #dic["header"]
-    find(small_block,dic)
     dic["give"] = None
     dic["ret"] = None
+
+    find(small_block,dic)
 
     method = dic["method"]
     apiname = dic["apiname"]
@@ -104,34 +108,82 @@ def generate_one_api(small_block,filename):
     givecontent = dic["give"]
     retcontent = dic["ret"]
 
+    print("Give content:")
+    print(givecontent)
+    print("End give content")
+
     filename = "apis/" + filename
-    file = open(filename,"w+")
-    file.writelines(static_content)
+
+
+    file = open(filename,"a")
+
 
     #@api.route content and methods
     headcontent = [
-        "@api.route('/" + apiname + "/') " +",methods="
+        "@api.route('/" + apiname + "/"
     ]
+    if urlargs != None:
+        headcontent.append('?')
+        keys = list(urlargs.keys())
+        values = list(urlargs.values())
+        for v in range(len(urlargs)):
+            if v != len(urlargs)-1:
+                headcontent.append(keys[v]+"=")
+                headcontent.append(values[v]+"&")
+            else:
+                headcontent.append(keys[v]+"=")
+                headcontent.append(values[v])
     file.writelines(headcontent)
 
     if method == None:
         print("Can't find leagle Content")
     elif 'GET' in method:
-        methodcontent = ["['GET'])\n"]
+        methodcontent = ["',methods = ['GET'])\n"]
     elif 'POST' in method :
-        methodcontent = ["['POST'])\n"]
+        methodcontent = ["',methods = ['POST'])\n"]
     elif 'PUT' in method:
-        methodcontent = ["['PUT'])\n"]
+        methodcontent = ["',methods = ['PUT'])\n"]
     else:
-        methodcontent = [ "['UNKONW'])\n" ]
+        methodcontent = ["',methods = ['OTHER'])\n" ]
     file.writelines(methodcontent)
 
+
     funccontent = [
-        "def "+filename+"():\n"
+        "def "+apiname+"("
     ]
+    if urlargs != None:
+        for v in range(len(urlargs)):
+            if v != len(urlargs)-1:
+                funccontent.append(keys[v]+",")
+            else:
+                funccontent.append(keys[v])
+    funccontent.append("):\n")
     file.writelines(funccontent)
 
+    
 
+    if givecontent != None:
+        print(givecontent)
+        keys , values = list(givecontent.keys()),list(givecontent.values())
+        bodygetcontent = []
+        for v in range(len(givecontent)):
+            bodygetcontent.append(" "*4 + keys[v] + "=request.get_json().get(" + values[v] + ")\n" )
+        
+        print("Body Get:",bodygetcontent)
+        
+        file.writelines(bodygetcontent)
+
+    if retcontent != None:
+        keys,values = list(retcontent.keys()),list(retcontent.values())
+        bodyrescontent=[]
+        bodyrescontent.append(" "*4 + "return Response(json.dumps({\n")
+        for v in range(len(retcontent)):
+            bodyrescontent.append(" "*8 + '"' + values[v] + '":\n')
+
+        print("BodyRes",bodyrescontent)    
+        file.writelines(bodyrescontent)
+    
+    file.close()
 
 def find(small_block,dic):
     """
@@ -186,7 +238,7 @@ def find(small_block,dic):
                 
                     if 'POST' in small_block[i] or 'PUT' in small_block[i]:
                         giveout = {}
-                        for p in range(len(datablock)-1):
+                        for p in range(len(datablock)):
                             if ':' in datablock[p]:
                                 flagindex = datablock[p].find(':')
                                 keyindex = datablock[p].find('"')

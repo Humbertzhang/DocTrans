@@ -4,7 +4,7 @@
 
 |URL|Header|Method|
 | :--- | :-- | :-- |
-|/api/v1.0/api1/ |adminHeader|POST|    #adminHeader 生成@admin_required
+|/api/v1.0/api1/ |adminHeader|POST|    adminHeader 生成@admin_required
 
 **POST(PUT) DATA**
 ```
