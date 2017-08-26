@@ -1,6 +1,7 @@
 import os
 from api_part import _init_ , static_content
-from pprint import pprint
+from test_part import static_test_content
+
 def makedir():
     """
     generate dirs to place apis and tests
@@ -63,10 +64,10 @@ def generate(mdfile):
         else:
             block = mdlines[rememberlines[number]:]
         print("generating:----------------- " + docnames[number] + "    --------------------------")
-        generate_apis(block,docnames[number])
-        generate_tests(block)
+        generate_apis_with_tests(block,docnames[number])
 
-def generate_apis(block,filename): #generate list of file
+
+def generate_apis_with_tests(block,filename): #generate list of file
     """
     generate api files and uncomplete api functions.
     use generate_init() function generate __init__.py file.
@@ -87,10 +88,10 @@ def generate_apis(block,filename): #generate list of file
         else:
             small_block = block[ apilines[number]:]
 
-        generate_one_api(small_block,filename)
+        generate_one_api_with_test(small_block,filename)
 
 
-def generate_one_api(small_block,filename):
+def generate_one_api_with_test(small_block,filename):
     """
     Use the content of the api to create api's static content.
     """
@@ -181,6 +182,7 @@ def generate_one_api(small_block,filename):
         bodyrescontent.append(" "*4 + "return Response(json.dumps({\n")
         for v in range(len(retcontent)):
             bodyrescontent.append(" "*8 + '"' + keys[v].strip(' ').strip(",") + '":"content",\n')
+        bodyrescontent.append(" "*8 + "}))\n")
         bodyrescontent.append(" "*8 + "}))\n")
 
         file.writelines(bodyrescontent)

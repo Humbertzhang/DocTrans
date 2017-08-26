@@ -1,0 +1,1 @@
+from .static_test_content import static_test_content
