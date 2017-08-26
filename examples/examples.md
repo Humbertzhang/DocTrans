@@ -27,7 +27,7 @@
 ####API 描述:GET示例
 |URL|Header|Method|
 | :--- | :-- | :-- |
-|/api/v1.0/api2/?arg1=type&arg2=type&arg3=type |NONE| GET|   #NONE为没有
+|/api/v1.0/api2/?arg1=type&arg2=type&arg3=type |NONE| GET|   #NONE,无,none为没有
 
 **RESPONSE DATA**
 ```

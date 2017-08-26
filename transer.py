@@ -86,36 +86,40 @@ def generate_apis(block,filename): #generate list of file
             small_block = block[ apilines[number]:apilines[number+1]]
         else:
             small_block = block[ apilines[number]:]
-        #print(small_block)
+
         generate_one_api(small_block,filename)
-        #print("Small Blocks:")
-        #pprint(small_block)
+
 
 def generate_one_api(small_block,filename):
     """
     Use the content of the api to create api's static content.
     """
+
+
     dic = {}
     dic["give"] = None
     dic["ret"] = None
+    dic["header"] = None
 
     find(small_block,dic)
 
     method = dic["method"]
     apiname = dic["apiname"]
-    header = dic["header"]
+    wrapper = dic["header"]
     urlargs = dic["urlargs"]
     givecontent = dic["give"]
     retcontent = dic["ret"]
-
-    print("Give content:")
-    print(givecontent)
-    print("End give content")
 
     filename = "apis/" + filename
 
 
     file = open(filename,"a")
+    file.writelines(['\n'])
+
+    #@wrapper
+    if wrapper != None:
+        wrappercontent = ["#@" + wrapper + "_required\n"]
+        file.writelines(wrappercontent)
 
 
     #@api.route content and methods
@@ -163,13 +167,11 @@ def generate_one_api(small_block,filename):
     
 
     if givecontent != None:
-        print(givecontent)
+
         keys , values = list(givecontent.keys()),list(givecontent.values())
         bodygetcontent = []
         for v in range(len(givecontent)):
-            bodygetcontent.append(" "*4 + keys[v] + "=request.get_json().get(" + values[v] + ")\n" )
-        
-        print("Body Get:",bodygetcontent)
+            bodygetcontent.append(" "*4 + keys[v] + "=request.get_json().get('" + keys[v] + "')\n" )
         
         file.writelines(bodygetcontent)
 
@@ -178,11 +180,12 @@ def generate_one_api(small_block,filename):
         bodyrescontent=[]
         bodyrescontent.append(" "*4 + "return Response(json.dumps({\n")
         for v in range(len(retcontent)):
-            bodyrescontent.append(" "*8 + '"' + values[v] + '":\n')
+            bodyrescontent.append(" "*8 + '"' + keys[v].strip(' ').strip(",") + '":"content",\n')
+        bodyrescontent.append(" "*8 + "}))\n")
 
-        print("BodyRes",bodyrescontent)    
         file.writelines(bodyrescontent)
-    
+
+    file.writelines([" "*4 + "pass\n"])
     file.close()
 
 def find(small_block,dic):
@@ -214,7 +217,9 @@ def find(small_block,dic):
 
             temp = small_block[i][ symbolcounter[1]:symbolcounter[2]]
             dic["header"] = temp[:(temp.find("Header"))].strip(' ')
-            #print("Header:" + dic["header"])
+            if "None" in dic["header"] or "无" in dic["header"] or "NONE" in dic["header"]:
+                dic["header"] = None
+
 
             temp = small_block[i][symbolcounter[0]:symbolcounter[1]]
 
@@ -228,30 +233,35 @@ def find(small_block,dic):
             dic["apiname"] = (temp[symbolcounter2[-2] : symbolcounter2[-1]]).strip('/')
             dic["urlargs"] = get_urlargs(temp,dic)
 
-        elif 'DATA' in small_block[i]:
+
+    for i in range(len(small_block)):
+
+        if 'DATA' in small_block[i]:
             line1 = i
-            for x in range(len(small_block[i:])-1):
+            for x in range(len(small_block[:])):
+
                 #print(small_block[x])
-                if '}' in small_block[x]:
+                if '}' in small_block[x] and x > line1:
+
                     line2 = x
                     datablock = small_block[line1:line2]
-                
+
                     if 'POST' in small_block[i] or 'PUT' in small_block[i]:
                         giveout = {}
                         for p in range(len(datablock)):
                             if ':' in datablock[p]:
                                 flagindex = datablock[p].find(':')
                                 keyindex = datablock[p].find('"')
-                                key = datablock[p][keyindex:flagindex-1]
-                                key = key.strip('"').strip("'").strip("\n")
+                                key = datablock[p][keyindex:flagindex-1].strip('"').strip("'").strip("\n").rstrip(',')
                                 value = datablock[p][flagindex+1:].strip(',').strip('"').strip("'").strip("\n").rstrip(',')
                                 giveout[key] = value
                                 dic["give"] = giveout
-                                print("Give:",giveout)
+
+
 
                     elif 'RESPONSE' in small_block[i]:
                         retback = {}
-                        for p in range(len(datablock)-1):
+                        for p in range(len(datablock)):
                             if ':' in datablock[p]:
                                 flagindex = datablock[p].find(':')
                                 keyindex = datablock[p].find('"')
@@ -259,7 +269,8 @@ def find(small_block,dic):
                                 value = datablock[p][flagindex+1:].strip(',').strip('"').strip("'").strip("\n")
                                 retback[key] = value
                                 dic["ret"] = retback
-                                print("ret",retback)
+
+                    break
 
 
 def get_urlargs(temp,dic):
