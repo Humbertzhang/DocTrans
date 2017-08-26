@@ -20,7 +20,7 @@ def makedir():
     if os.path.isfile("test/test.py"):
         pass
     else:
-        with open("test/test.py","w") as f:
+        with open("test/test.py","w+") as f:
             f.close()
 
 
@@ -55,6 +55,10 @@ def generate(mdfile):
             rememberlines.append(i)
             docnames.append(filename+".py")
 
+    with open('test/test.py', "w+") as ftest:
+        ftest.writelines(static_test_content)
+        ftest.close()
+
     #Get the file content block in the markdown file.
     for number in range(len(rememberlines)):
         if number != len(rememberlines)-1:
@@ -65,6 +69,7 @@ def generate(mdfile):
             block = mdlines[rememberlines[number]:]
         print("generating:----------------- " + docnames[number] + "    --------------------------")
         generate_apis_with_tests(block,docnames[number])
+
 
 
 def generate_apis_with_tests(block,filename): #generate list of file
@@ -84,9 +89,9 @@ def generate_apis_with_tests(block,filename): #generate list of file
     
     for number in range(len(apilines)):
         if number != len(apilines)-1:
-            small_block = block[ apilines[number]:apilines[number+1]]
+            small_block = block[apilines[number]:apilines[number+1]]
         else:
-            small_block = block[ apilines[number]:]
+            small_block = block[apilines[number]:]
 
         generate_one_api_with_test(small_block,filename)
 
@@ -190,6 +195,10 @@ def generate_one_api_with_test(small_block,filename):
     file.writelines([" "*4 + "pass\n"])
     file.close()
 
+    with open("test/test.py","a") as file:
+        write_one_test(dic,file)
+
+
 def find(small_block,dic):
     """
     Find method that the api use by the table used in apidoc.md file.
@@ -274,6 +283,48 @@ def find(small_block,dic):
 
                     break
 
+def write_one_test(dic,file):
+
+    method = dic["method"]
+    apiname = dic["apiname"]
+    wrapper = dic["header"]
+    urlargs = dic["urlargs"]
+    givecontent = dic["give"]
+    retcontent = dic["ret"]
+
+    test_content = [
+        " "*4 + "def test_rank_" + apiname + "(self):\n",
+        " "*8 + "response = self.client." + method.lower().lstrip(' ').rstrip(' ') +"(",
+    ]
+
+    if urlargs != None:
+        keys = list(urlargs.keys())
+        for p in range(len(urlargs)):
+            if p != len(urlargs)-1:
+                test_content.append(keys[p]+"=value,")
+            else:
+                test_content.append(keys[p]+"=value),\n")
+    else:
+        test_content.append("),\n")
+    test_content.append(" "*12 + "url_for('api." + apiname + "',_external=True),\n",)
+
+    if wrapper != None:
+        test_content.append(" "*12+"headers = { },\n")
+
+    if givecontent != None:
+        keys = list(givecontent.keys())
+        test_content.append(" "*12 + "data=json.dumps({\n")
+        for o in range(len(givecontent)):
+            if o == len(givecontent)-1:
+                test_content.append(' '*16 + '"' +  keys[o]+'":"content",\n')
+            else:
+                test_content.append(' '*16 + '"' + keys[o]+'":"content"\n')
+        test_content.append(" "*12 + "}),\n")
+
+    test_content.append(" "*12 + "content_type = 'application/json')\n")
+
+
+    file.writelines(test_content)
 
 def get_urlargs(temp,dic):
     argcounter = [] #count &

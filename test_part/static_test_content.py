@@ -4,12 +4,14 @@ Static content for test
 """
 static_test_content = [
     "import unittest\n",
-    "from flask import create_app\n",
+    "from app import create_app\n",
+    "from flask import current_app,url_for,jsonify\n",
     "from flask_sqlalchemy import SQLAlchemy\n",
     "import random\n",
     "import json\n",
-    "import base64\n\n\n",
-    "Class BasicTestCase(unittest.TestCase):\n\n",
+    "import base64\n\n",
+    "db = SQLAlchemy()\n",
+    "class BasicTestCase(unittest.TestCase):\n\n",
     " "*4 + "def setUp(self):\n",
     " "*8 + "self.app = create_app()\n",
     " "*8 + "self.app_context = self.app.app_context()\n",
