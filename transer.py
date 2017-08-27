@@ -1,5 +1,10 @@
+"""
+The Transform Worker for Api doc
+It will generate apis and tests within its power according the api doc in markdown format.
+"""
+
 import os
-from api_part import _init_ , static_content
+from api_part import static_content
 from test_part import static_test_content
 
 def makedir():
@@ -20,7 +25,7 @@ def makedir():
     if os.path.isfile("test/test.py"):
         pass
     else:
-        with open("test/test.py","w+") as f:
+        with open("test/test.py", "w+") as f:
             f.close()
 
 
@@ -34,7 +39,7 @@ def generate(mdfile):
         print("Incorrect Address")
         return
     else:
-        mdfile = open(mdfile,"r")
+        mdfile = open(mdfile, "r")
 
 
     #find a filename,and use this filename to generate api file
@@ -52,7 +57,7 @@ def generate(mdfile):
             if os.path.isfile("apis/"+filename+".py"):
                 pass
             else:
-                with open("apis/"+filename+".py","w") as f:
+                with open("apis/"+filename+".py", "w") as f:
                     f.close()
             rememberlines.append(i)
             docnames.append(filename+".py")
@@ -72,22 +77,21 @@ def generate(mdfile):
             block = mdlines[rememberlines[number]:]
         print("generating:----------------- " + docnames[number] + "    --------------------------")
 
-        generate_apis_with_tests(block,docnames[number])
+        generate_apis_with_tests(block, docnames[number])
 
 
 
-def generate_apis_with_tests(block,filename): #generate list of file
+def generate_apis_with_tests(block, filename): #generate list of file
     """
     generate apis and tests
     It will use generate_one_api_with_test function to generate contents one by one
     Every Block is A file's content.It may contain many apis.
-    
-    :param block: A block content a file's apis' markdownfile 
+    :param block: A block content a file's apis' markdownfile
     :param filename: the file's name which mentioned in 'param block'
     :return: None
     """
 
-    with open('apis/'+ filename,"w+") as f:
+    with open('apis/'+ filename, "w+") as f:
         f.writelines(static_content)
         f.close()
 
@@ -95,19 +99,18 @@ def generate_apis_with_tests(block,filename): #generate list of file
     for i in range(len(block)):
         if block[i].count("#") == 4:
             apilines.append(i)
-    
+
     for number in range(len(apilines)):
         if number != len(apilines)-1:
             small_block = block[apilines[number]:apilines[number+1]]
         else:
             small_block = block[apilines[number]:]
 
-        generate_one_api_with_test(small_block,filename)
+        generate_one_api_with_test(small_block, filename)
 
 
-def generate_one_api_with_test(small_block,filename):
+def generate_one_api_with_test(small_block, filename):
     """
-    
     :param small_block: The block of a api's description
     :param filename: Which file does the api belong to.
     :return: None
@@ -122,7 +125,7 @@ def generate_one_api_with_test(small_block,filename):
     dic["header"] = None
 
 
-    find(small_block,dic)
+    find(small_block, dic)
 
     method = dic["method"]
     apiname = dic["apiname"]
@@ -133,7 +136,7 @@ def generate_one_api_with_test(small_block,filename):
 
     filename = "apis/" + filename
 
-    file = open(filename,"a")
+    file = open(filename, "a")
     file.writelines(['\n'])
 
     #The result of this func is writing method,apiname,header,url args post and response data
@@ -164,12 +167,12 @@ def generate_one_api_with_test(small_block,filename):
         print("Can't find leagle Content")
     elif 'GET' in method:
         methodcontent = ["',methods = ['GET'])\n"]
-    elif 'POST' in method :
+    elif 'POST' in method:
         methodcontent = ["',methods = ['POST'])\n"]
     elif 'PUT' in method:
         methodcontent = ["',methods = ['PUT'])\n"]
     else:
-        methodcontent = ["',methods = ['OTHER'])\n" ]
+        methodcontent = ["',methods = ['OTHER'])\n"]
     file.writelines(methodcontent)
 
 
@@ -185,20 +188,18 @@ def generate_one_api_with_test(small_block,filename):
     funccontent.append("):\n")
     file.writelines(funccontent)
 
-    
-
     if givecontent != None:
 
-        keys , values = list(givecontent.keys()),list(givecontent.values())
+        keys, values = list(givecontent.keys()), list(givecontent.values())
         bodygetcontent = []
         for v in range(len(givecontent)):
-            bodygetcontent.append(" "*4 + keys[v] + "=request.get_json().get('" + keys[v] + "')\n" )
-        
+            bodygetcontent.append(" "*4 + keys[v] + "=request.get_json().get('" + keys[v] + "')\n")
+
         file.writelines(bodygetcontent)
 
     if retcontent != None:
-        keys,values = list(retcontent.keys()),list(retcontent.values())
-        bodyrescontent=[]
+        keys, values = list(retcontent.keys()), list(retcontent.values())
+        bodyrescontent = []
         bodyrescontent.append(" "*4 + "return Response(json.dumps({\n")
         for v in range(len(retcontent)):
             bodyrescontent.append(" "*8 + '"' + keys[v].strip(' ').strip(",") + '":"content",\n')
@@ -209,18 +210,18 @@ def generate_one_api_with_test(small_block,filename):
     file.writelines([" "*4 + "pass\n"])
     file.close()
 
-    with open("test/test.py","a") as file:
-        write_one_test(dic,file)
+    with open("test/test.py", "a") as file:
+        write_one_test(dic, file)
 
 
-def find(small_block,dic):
+def find(small_block, dic):
     """
     Get the method,apiname,header,urlargs,POST data or PUT data and RESPONSE data
-    :param small_block:The block of a api's description 
+    :param small_block:The block of a api's description
     :param dic: The dic with methods headers and something more.
     :return: None. It will modify the dic directly.
     """
-    
+
     for i in range(len(small_block)):
         # if '/' in small_block[i], it is the info line.
         if '/' in small_block[i]:
@@ -231,12 +232,12 @@ def find(small_block,dic):
             #    print("W:"+ str(w),end = ' ')
                 if small_block[i][w-1] == '|':
                     symbolcounter.append(w)
-            
+
             if len(symbolcounter) != 4:
                 print("Format Error!")
-            dic['method'] = small_block[i][ symbolcounter[2] : symbolcounter[3]-1 ]
+            dic['method'] = small_block[i][symbolcounter[2]: symbolcounter[3]-1]
 
-            temp = small_block[i][ symbolcounter[1]:symbolcounter[2]]
+            temp = small_block[i][symbolcounter[1]:symbolcounter[2]]
             dic["header"] = temp[:(temp.find("Header"))].strip(' ')
             if "None" in dic["header"] or "无" in dic["header"] or "NONE" in dic["header"]:
                 dic["header"] = None
@@ -247,7 +248,7 @@ def find(small_block,dic):
             for i in range(len(temp)):
                 if temp[i] == '/':
                     symbolcounter2.append(i)
-            if(len(symbolcounter2) == 0):
+            if len(symbolcounter2) == 0:
                 print("Format Wrong In URL")
             dic["apiname"] = (temp[symbolcounter2[-2] : symbolcounter2[-1]]).strip('/')
             dic["urlargs"] = get_urlargs(temp)
@@ -269,8 +270,13 @@ def find(small_block,dic):
                             if ':' in datablock[p]:
                                 flagindex = datablock[p].find(':')
                                 keyindex = datablock[p].find('"')
-                                key = datablock[p][keyindex:flagindex-1].strip('"').strip("'").strip("\n").rstrip(',')
-                                value = datablock[p][flagindex+1:].strip(',').strip('"').strip("'").strip("\n").rstrip(',')
+
+                                key = datablock[p][keyindex:flagindex-1]
+                                key = key.strip('"').strip("'").strip("\n").rstrip(',')
+
+                                value = datablock[p][flagindex+1:]
+                                value = value.strip(',').strip('"').strip("'").strip("\n").rstrip(',')
+
                                 giveout[key] = value
                                 dic["give"] = giveout
 
@@ -282,15 +288,20 @@ def find(small_block,dic):
                             if ':' in datablock[p]:
                                 flagindex = datablock[p].find(':')
                                 keyindex = datablock[p].find('"')
-                                key = datablock[p][keyindex:flagindex-1].strip('"').strip("'").strip("\n")
-                                value = datablock[p][flagindex+1:].strip(',').strip('"').strip("'").strip("\n")
+
+                                key = datablock[p][keyindex:flagindex-1]
+                                key = key.strip('"').strip("'").strip("\n")
+
+                                value = datablock[p][flagindex+1:]
+                                value = value.strip(',').strip('"').strip("'").strip("\n")
+
                                 retback[key] = value
                                 dic["ret"] = retback
 
                     break
 
 
-def write_one_test(dic,file):
+def write_one_test(dic, file):
     """
     Write Test content.
     :param dic: The dic which has header methods and something more
@@ -302,7 +313,6 @@ def write_one_test(dic,file):
     wrapper = dic["header"]
     urlargs = dic["urlargs"]
     givecontent = dic["give"]
-    retcontent = dic["ret"]
 
     test_content = [
         " "*4 + "def test_rank_" + apiname + "(self):\n",
@@ -341,29 +351,30 @@ def write_one_test(dic,file):
 
 def get_urlargs(temp):
     """
-    
     :param temp:The URL's Content like /api/v1.0/api5/?arg1=email&arg2=username
     :return: The args that temp have
     """
     argcounter = [] # count &
     args = {}
     if '?' in temp:
-        temp = temp[ temp.find('?') : ]
+        temp = temp[temp.find('?'):]
     else:
         return None
 
     for i in range(len(temp)):
         if temp[i] == '&' or temp[i] == '?':
             argcounter.append(i)
-    
+
     for j in range(len(argcounter)):
         if j != len(argcounter) -1:
             tinyblock = temp[argcounter[j]:argcounter[j+1]]
         else:
             tinyblock = temp[argcounter[j]:]
-        
-        args[ tinyblock[ 1: tinyblock.find('=') ] ] = (tinyblock[tinyblock.find('=')+1 : ]).strip('|').strip(' ')
-    
+
+        thekey = tinyblock[1: tinyblock.find('=')]
+        thevalue = (tinyblock[tinyblock.find('=')+1:]).strip('|').strip(' ')
+        args[thekey] = thevalue
+
     return args
 
 
