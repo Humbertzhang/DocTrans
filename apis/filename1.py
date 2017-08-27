@@ -14,8 +14,8 @@ def api1():
         }))
     pass
 
-@api.route('/api2/?arg1=type&arg3=type&arg2=type',methods = ['GET'])
-def api2(arg1,arg3,arg2):
+@api.route('/api2/?arg1=type&arg2=type&arg3=type',methods = ['GET'])
+def api2(arg1,arg2,arg3):
     return Response(json.dumps({
         "key2":"content",
         "key1":"content",

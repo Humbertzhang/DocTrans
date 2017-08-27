@@ -1,9 +1,12 @@
+#coding:utf-8
+
 """
 The Transform Worker for Api doc
 It will generate apis and tests within its power according the api doc in markdown format.
 """
 
 import os
+import sys
 from api_part import static_content
 from test_part import static_test_content
 
@@ -382,5 +385,7 @@ def get_urlargs(temp):
 
 if __name__ == '__main__':
     makedir()
-    mdfile = str(input(">Api document path:"))
-    generate(mdfile)
+    if len(sys.argv[:]) != 2:
+        print("Usage:python3 transer.py the/url/to/your/markdownfile.md")
+    else:
+        generate(sys.argv[1])

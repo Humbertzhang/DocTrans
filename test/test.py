@@ -35,7 +35,7 @@ class BasicTestCase(unittest.TestCase):
             }),
             content_type = 'application/json')
     def test_rank_api2(self):
-        response = self.client.get(arg1=value,arg3=value,arg2=value),
+        response = self.client.get(arg1=value,arg2=value,arg3=value),
             url_for('api.api2',_external=True),
             content_type = 'application/json')
     def test_rank_api3(self):
