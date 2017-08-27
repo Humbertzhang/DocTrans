@@ -188,7 +188,6 @@ def generate_one_api_with_test(small_block,filename):
         for v in range(len(retcontent)):
             bodyrescontent.append(" "*8 + '"' + keys[v].strip(' ').strip(",") + '":"content",\n')
         bodyrescontent.append(" "*8 + "}))\n")
-        bodyrescontent.append(" "*8 + "}))\n")
 
         file.writelines(bodyrescontent)
 
