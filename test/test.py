@@ -30,12 +30,12 @@ class BasicTestCase(unittest.TestCase):
             url_for('api.api1',_external=True),
             headers = { },
             data=json.dumps({
-                "key2":"content"
-                "key1":"content",
+                "key1":"content"
+                "key2":"content",
             }),
             content_type = 'application/json')
     def test_rank_api2(self):
-        response = self.client.get(arg3=value,arg1=value,arg2=value),
+        response = self.client.get(arg2=value,arg1=value,arg3=value),
             url_for('api.api2',_external=True),
             content_type = 'application/json')
     def test_rank_api3(self):
@@ -43,8 +43,8 @@ class BasicTestCase(unittest.TestCase):
             url_for('api.api3',_external=True),
             headers = { },
             data=json.dumps({
-                "key2":"content"
-                "key1":"content",
+                "key1":"content"
+                "key2":"content",
             }),
             content_type = 'application/json')
     def test_rank_api4(self):
@@ -52,8 +52,8 @@ class BasicTestCase(unittest.TestCase):
             url_for('api.api4',_external=True),
             headers = { },
             data=json.dumps({
-                "key2":"content"
-                "key1":"content",
+                "key1":"content"
+                "key2":"content",
             }),
             content_type = 'application/json')
     def test_rank_api5(self):

@@ -6,10 +6,10 @@ from . import api
 #@login_required
 @api.route('/api4/',methods = ['POST'])
 def api4():
-    key2=request.get_json().get('key2')
     key1=request.get_json().get('key1')
+    key2=request.get_json().get('key2')
     return Response(json.dumps({
-        "key2":"content",
         "key1":"content",
+        "key2":"content",
         }))
     pass

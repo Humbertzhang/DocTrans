@@ -6,13 +6,13 @@ def makedir():
     """
     generate dirs to place apis and tests
     """
-    #generate api floder
+    # generate api floder
     if os.path.isdir("apis"):
         pass
     else:
         os.mkdir("apis")
 
-    #generate test floder and test.py file
+    # generate test floder and test.py file
     if os.path.isdir("test"):
         pass
     else:
@@ -27,17 +27,19 @@ def makedir():
 def generate(mdfile):
     """
     Read and understand mdfile.
-    Use generate_apis and generate_tests to generate apis and tests.
+    Generate apis and tests.
+    :param mdfile: the markdown file.
     """
     if not os.path.isfile(mdfile):
         print("Incorrect Address")
         return
     else:
         mdfile = open(mdfile,"r")
-        
-    #find a filename.
-    #use this filename to generate api file
+
+
+    #find a filename,and use this filename to generate api file
     #rememberlines is used to remember the lines which is filename
+    #between the rememberlines is the block of userful api document
     rememberlines = []
     docnames = []
     mdlines = mdfile.readlines()
@@ -55,6 +57,7 @@ def generate(mdfile):
             rememberlines.append(i)
             docnames.append(filename+".py")
 
+    #write static content in test.py
     with open('test/test.py', "w+") as ftest:
         ftest.writelines(static_test_content)
         ftest.close()
@@ -68,16 +71,22 @@ def generate(mdfile):
         else:
             block = mdlines[rememberlines[number]:]
         print("generating:----------------- " + docnames[number] + "    --------------------------")
+
         generate_apis_with_tests(block,docnames[number])
 
 
 
 def generate_apis_with_tests(block,filename): #generate list of file
     """
-    generate api files and uncomplete api functions.
-    use generate_init() function generate __init__.py file.
+    generate apis and tests
+    It will use generate_one_api_with_test function to generate contents one by one
     Every Block is A file's content.It may contain many apis.
+    
+    :param block: A block content a file's apis' markdownfile 
+    :param filename: the file's name which mentioned in 'param block'
+    :return: None
     """
+
     with open('apis/'+ filename,"w+") as f:
         f.writelines(static_content)
         f.close()
@@ -98,14 +107,20 @@ def generate_apis_with_tests(block,filename): #generate list of file
 
 def generate_one_api_with_test(small_block,filename):
     """
-    Use the content of the api to create api's static content.
+    
+    :param small_block: The block of a api's description
+    :param filename: Which file does the api belong to.
+    :return: None
     """
 
-
+    """
+    Use the content of the api to create api's static content and test's static content.
+    """
     dic = {}
     dic["give"] = None
     dic["ret"] = None
     dic["header"] = None
+
 
     find(small_block,dic)
 
@@ -118,10 +133,10 @@ def generate_one_api_with_test(small_block,filename):
 
     filename = "apis/" + filename
 
-
     file = open(filename,"a")
     file.writelines(['\n'])
 
+    #The result of this func is writing method,apiname,header,url args post and response data
     #@wrapper
     if wrapper != None:
         wrappercontent = ["#@" + wrapper + "_required\n"]
@@ -200,19 +215,17 @@ def generate_one_api_with_test(small_block,filename):
 
 def find(small_block,dic):
     """
-    Find method that the api use by the table used in apidoc.md file.
-    GET , POST and PUT methods will be identified.
-    table format:
-    |URL|Header|Method|
-    | :--- | :-- | :-- |
-    |/api/v1.0/url/ |adminHeader| POST|
+    Get the method,apiname,header,urlargs,POST data or PUT data and RESPONSE data
+    :param small_block:The block of a api's description 
+    :param dic: The dic with methods headers and something more.
+    :return: None. It will modify the dic directly.
     """
     
     for i in range(len(small_block)):
-        #if '/' in small_block[i], it is the info line.
+        # if '/' in small_block[i], it is the info line.
         if '/' in small_block[i]:
             #print("Yoooooo2")
-            symbolcounter = []          #count '|'
+            symbolcounter = []          # count '|'
             #print(range(len(small_block[i])))
             for w in range(len(small_block[i])):
             #    print("W:"+ str(w),end = ' ')
@@ -222,18 +235,14 @@ def find(small_block,dic):
             if len(symbolcounter) != 4:
                 print("Format Error!")
             dic['method'] = small_block[i][ symbolcounter[2] : symbolcounter[3]-1 ]
-            #print("Method :"+ dic['method'])
-
 
             temp = small_block[i][ symbolcounter[1]:symbolcounter[2]]
             dic["header"] = temp[:(temp.find("Header"))].strip(' ')
             if "None" in dic["header"] or "无" in dic["header"] or "NONE" in dic["header"]:
                 dic["header"] = None
-
-
             temp = small_block[i][symbolcounter[0]:symbolcounter[1]]
 
-            #print("Temp:" + temp)
+            # Temp:The URL's Content like /api/v1.0/api5/
             symbolcounter2 = []         #count '/'
             for i in range(len(temp)):
                 if temp[i] == '/':
@@ -241,11 +250,9 @@ def find(small_block,dic):
             if(len(symbolcounter2) == 0):
                 print("Format Wrong In URL")
             dic["apiname"] = (temp[symbolcounter2[-2] : symbolcounter2[-1]]).strip('/')
-            dic["urlargs"] = get_urlargs(temp,dic)
-
+            dic["urlargs"] = get_urlargs(temp)
 
     for i in range(len(small_block)):
-
         if 'DATA' in small_block[i]:
             line1 = i
             for x in range(len(small_block[:])):
@@ -282,8 +289,14 @@ def find(small_block,dic):
 
                     break
 
-def write_one_test(dic,file):
 
+def write_one_test(dic,file):
+    """
+    Write Test content.
+    :param dic: The dic which has header methods and something more
+    :param file: the test.py
+    :return: None
+    """
     method = dic["method"]
     apiname = dic["apiname"]
     wrapper = dic["header"]
@@ -325,8 +338,14 @@ def write_one_test(dic,file):
 
     file.writelines(test_content)
 
-def get_urlargs(temp,dic):
-    argcounter = [] #count &
+
+def get_urlargs(temp):
+    """
+    
+    :param temp:The URL's Content like /api/v1.0/api5/?arg1=email&arg2=username
+    :return: The args that temp have
+    """
+    argcounter = [] # count &
     args = {}
     if '?' in temp:
         temp = temp[ temp.find('?') : ]
@@ -347,19 +366,6 @@ def get_urlargs(temp,dic):
     
     return args
 
-def generate_tests(block):
-    """
-    generate unit tests.
-    """
-    pass
-
-def generate_init():
-    """
-    generate __init__.py.
-    Be used in generate function.     
-    """
-    #Use os.ls to get all the api files.
-    pass
 
 
 
