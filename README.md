@@ -1,7 +1,9 @@
 ## DocTrans
 A api and test generate program of flask.
 Support python2 together with python3.
-####MarkDown file format
+git clone and try it by `python transer.py examples/examples.md`
+
+#### MarkDown file format
 + You should use '##' to identify a filename.
 + You should use '####' to identify an api of a file.
 + You have to give out the api,header and url like that :
@@ -27,7 +29,5 @@ Support python2 together with python3.
 
 More details you can see that gif:
 ![doctrans.gif](http://upload-images.jianshu.io/upload_images/5195759-495068f5c7508552.gif?imageMogr2/auto-orient/strip)
-
-or git clone and try it : )
 
 ## Welcome to use,issue,fork and contribute!
